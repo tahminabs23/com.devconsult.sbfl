@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import * as Auth0 from 'auth0-js';
@@ -20,7 +20,10 @@ export class AuthService {
 
   auth0 = new Auth0.WebAuth(environment.auth0Config.web);
 
-  constructor(public router: Router) {
+  constructor(
+    public router: Router,
+    public zone: NgZone,
+    ) {
     // Check if user is logged In when Initializing
     const loggedIn = this.isLoggedIn = this.isAuthenticated();
     this.isLoggedIn$.next(loggedIn);
@@ -44,35 +47,34 @@ export class AuthService {
         throw err;
       }
       console.log(authResult);
-      if (authResult && authResult.accessToken && authResult.idToken) {
-        window.location.hash = '';
-        this.setSession(authResult);
-        const loggedIn = this.isLoggedIn = true;
-        this.isLoggedIn$.next(loggedIn);
-        this.router.navigate(['/']);
-      } else if (err) {
-        const loggedIn = this.isLoggedIn = false;
-        this.isLoggedIn$.next(loggedIn);
-        this.router.navigate(['/']);
-      }
+      this.processauthentication(authResult, err);
     });
   }
 
   public handleAuthentication(): void {
     this.auth0.parseHash((err, authResult) => {
-      if (authResult && authResult.accessToken && authResult.idToken) {
-        window.location.hash = '';
-        this.setSession(authResult);
-        const loggedIn = this.isLoggedIn = true;
-        this.isLoggedIn$.next(loggedIn);
-        this.router.navigate(['/home']);
-      } else if (err) {
-        const loggedIn = this.isLoggedIn = false;
-        this.isLoggedIn$.next(loggedIn);
-        this.router.navigate(['/home']);
-      }
-      console.log(this.isLoggedIn);
+      this.processauthentication(authResult, err)
     });
+  }
+
+  public processauthentication(authResult, err){
+    if (authResult && authResult.accessToken && authResult.idToken) {
+      window.location.hash = '';
+      this.setSession(authResult);
+      const loggedIn = this.isLoggedIn = true;
+      this.isLoggedIn$.next(loggedIn);
+      this.router.navigate(['/']);
+      this.zone.run(() => {
+        // this.user = profile;
+      });
+    } else if (err) {
+      const loggedIn = this.isLoggedIn = false;
+      this.isLoggedIn$.next(loggedIn);
+      this.router.navigate(['/']);
+      this.zone.run(() => {
+        // this.user = profile;
+      });
+    }
   }
 
   private setSession(authResult): void {
