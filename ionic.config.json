@@ -1,0 +1,8 @@
+{
+  "name": "com.devconsult.sbfl",
+  "integrations": {
+    "capacitor": {},
+    "cordova": {}
+  },
+  "type": "angular"
+}

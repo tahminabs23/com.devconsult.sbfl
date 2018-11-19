@@ -1,0 +1,15 @@
+<ion-header>
+  <ion-toolbar>
+    <ion-title>login</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content padding>
+  {{ authService.isLoggedIn }}
+  <div padding *ngIf="!authService.isLoggedIn">
+    <ion-button color="secondary" shape="round" fill="outline" (click)="authService.login()">Login to See More Detail</ion-button>
+  </div>
+  <div padding [hidden]="!authService.isLoggedIn">
+    <ion-button color="secondary" shape="round" fill="outline" (click)="authService.logout()">Logout</ion-button>
+  </div>
+</ion-content>
